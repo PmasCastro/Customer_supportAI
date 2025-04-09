@@ -1,24 +1,46 @@
 import os
 from typing import List
 from dotenv import load_dotenv 
+import ollama
 import openai
 import gradio as gr
 
-
-load_dotenv
+load_dotenv()
 openai_api_key = os.getenv('OPENAI_API_KEY')
 
-system_message = "You are a helpful assistant"
+system_message = "You are an helpful AI assistant"
 
-def message_gpt(prompt):
+# def stream_gpt(prompt):
+#     messages = [
+#         {"role": "system", "content": system_message},
+#         {"role": "user", "content": prompt}
+#     ]
+#     stream = openai.chat.completions.create(
+#         model="gpt-4o-mini",
+#         messages=messages,
+#         stream=True,
+#     )
+#     result = ""
+#     for chunk in stream:
+#         result += chunk.choices[0].delta.content or ""
+#         yield result
+
+
+def get_ollama(prompt):
     messages = [
-        {"role": "assistant", "content": system_message},
-        {"role": "user", "content": prompt}
+        {"role": "system", "content": system_message},
+        {"role": "user", "content": prompt},
     ]
-    completion = openai.chat.completions.create(
-        model="gpt-4o-mini",
-        messages= messages,
-    )
-    return completion.choices[0].message.content
+    response = ollama.chat(
+        messages=messages,
+        model="llama3.2",
+        )
+    return response['message']['content']
 
-gr.Interface(fn=message_gpt, inputs="textbox", outputs="textbox", flagging_mode="never").launch(inbrowser=True)
+view = gr.Interface(
+    fn = get_ollama,
+    inputs=[gr.Textbox(label="Your message:")],
+    outputs=[gr.Markdown(label="Response:")],
+    flagging_mode="never"
+)
+view.launch()
