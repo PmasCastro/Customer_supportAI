@@ -8,7 +8,7 @@ import gradio as gr
 load_dotenv()
 openai_api_key = os.getenv('OPENAI_API_KEY')
 
-system_message = "You are an helpful AI assistant"
+system_message = "You are an helpful AI assistant that gives answers in Markdown"
 
 # def stream_gpt(prompt):
 #     messages = [
@@ -34,8 +34,14 @@ def get_ollama(prompt):
     response = ollama.chat(
         messages=messages,
         model="llama3.2",
+        stream=True
         )
-    return response['message']['content']
+    result = ""
+    for chunk in response:
+        result += chunk['message']['content'] or ""
+        yield result
+        
+    
 
 view = gr.Interface(
     fn = get_ollama,
